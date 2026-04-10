@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herramientas de Texto</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+        h1 { text-align: center; color: #333; margin-bottom: 30px; font-size: 28px; }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #e0e0e0;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 200px;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .tab-btn:hover:not(.active) {
+            background: #d0d0d0;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Transformador */
+        .input-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 10px; color: #555; font-weight: 600; font-size: 16px; }
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        textarea:focus { outline: none; border-color: #667eea; }
+        .buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .buttons button {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-capitalize { background: #667eea; color: white; }
+        .btn-capitalize:hover { background: #5568d3; transform: translateY(-2px); }
+        .btn-upper { background: #f093fb; color: white; }
+        .btn-upper:hover { background: #d63384; transform: translateY(-2px); }
+        .btn-lower { background: #4facfe; color: white; }
+        .btn-lower:hover { background: #007adf; transform: translateY(-2px); }
+        .btn-slug { background: #00d084; color: white; }
+        .btn-slug:hover { background: #00a86b; transform: translateY(-2px); }
+        .result-group { margin-top: 25px; }
+        .result-box {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 120px;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #333;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .result-box:empty::before { content: 'El resultado aparecera aqui...'; color: #999; }
+        
+        /* Editor HTML */
+        .editor-container { width: 100%; }
+        .toolbar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+        .toolbar button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .toolbar button:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .toolbar select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .editor-area {
+            width: 100%;
+            min-height: 300px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        .editor-area:focus { outline: none; border-color: #667eea; }
+        .html-output { margin-top: 20px; }
+        .html-output textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            background: #2d2d2d;
+            color: #00ff00;
+        }
+        .html-output textarea:focus { outline: none; border-color: #667eea; }
+        .btn-copy {
+            background: #ff6b6b;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        .btn-copy:hover { background: #ee5a5a; transform: translateY(-2px); }
+        .btn-copy.copied { background: #00d084; }
+        
+        /* Numeros */
+        .number-section { margin-bottom: 25px; }
+        .number-help {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+        }
+        .btn-number {
+            background: #ff9f43;
+            color: white;
+        }
+        .btn-number:hover { background: #e67e22; transform: translateY(-2px); }
+        .btn-number-clean {
+            background: #ee5a5a;
+            color: white;
+        }
+        .btn-number-clean:hover { background: #d63031; transform: translateY(-2px); }
+        .btn-number-format {
+            background: #00b894;
+            color: white;
+        }
+        .btn-number-format:hover { background: #00a381; transform: translateY(-2px); }
+        #resultadoNumero {
+            min-height: 200px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            white-space: pre-wrap;
+        }
+        
+        /* Replace */
+        .replace-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .replace-input {
+            flex: 1;
+        }
+        .replace-input label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .replace-input input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        .replace-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn-replace {
+            background: #a55eea;
+            color: white;
+        }
+        .btn-replace:hover { background: #8e44ad; transform: translateY(-2px); }
+        .btn-replace-all {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-replace-all:hover { background: #c0392b; transform: translateY(-2px); }
+        .btn-replace-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .match-count {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        #resultadoReplace {
+            min-height: 250px;
+            height: auto !important;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Herramientas de Texto</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('transformer')">Transformar Texto</button>
+            <button class="tab-btn" onclick="showTab('editor')">Editor HTML</button>
+            <button class="tab-btn" onclick="showTab('numbers')">Formatear Numeros</button>
+            <button class="tab-btn" onclick="showTab('replace')">Buscar y Reemplazar</button>
+        </div>
+        
+        <!-- Tab Transformador -->
+        <div id="transformer" class="tab-content active">
+            <div class="input-group">
+                <label for="inputText">Ingresa tu texto:</label>
+                <textarea id="inputText" placeholder="Escribe o pega tu texto aqui..."></textarea>
+            </div>
+            <div class="buttons">
+                <button class="btn-capitalize" onclick="capitalizar()">Capitalizar</button>
+                <button class="btn-upper" onclick="aMayusculas()">MAYUSCULAS</button>
+                <button class="btn-lower" onclick="aMinusculas()">minusculas</button>
+                <button class="btn-slug" onclick="generarSlug()">URL Amigable</button>
+            </div>
+            <div class="result-group">
+                <label>Resultado:</label>
+                <div class="result-box" id="resultado"></div>
+            </div>
+        </div>
+        
+        <!-- Tab Editor HTML -->
+        <div id="editor" class="tab-content">
+            <div class="editor-container">
+                <div class="toolbar">
+                    <button onclick="execCmd('bold')"><b>B</b></button>
+                    <button onclick="execCmd('italic')"><i>I</i></button>
+                    <button onclick="execCmd('underline')"><u>U</u></button>
+                    <button onclick="execCmd('strikeThrough')"><s>S</s></button>
+                    <select onchange="execCmd('formatBlock', this.value)">
+                        <option value="">Encabezado</option>
+                        <option value="h1">&lt;h1&gt; Titulo 1</option>
+                        <option value="h2">&lt;h2&gt; Titulo 2</option>
+                        <option value="h3">&lt;h3&gt; Titulo 3</option>
+                        <option value="h4">&lt;h4&gt; Titulo 4</option>
+                        <option value="p">Parrafo</option>
+                    </select>
+                    <button onclick="execCmd('insertUnorderedList')">Lista</button>
+                    <button onclick="execCmd('insertOrderedList')">Numeros</button>
+                    <button onclick="execCmd('createLink', prompt('Ingresa la URL:'))">Link</button>
+                    <button onclick="execCmd('unlink')">Quitar Link</button>
+                    <button onclick="execCmd('removeFormat')">Limpiar</button>
+                </div>
+                <div class="editor-area" id="editorArea" contenteditable="true" placeholder="Escribe aqui tu contenido..."></div>
+                <div class="html-output">
+                    <label for="htmlCode">Codigo HTML generado:</label>
+                    <textarea id="htmlCode" readonly placeholder="El codigo HTML aparecera aqui..."></textarea>
+                    <button class="btn-copy" onclick="copiarHTML()">Copiar HTML</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Numeros -->
+        <div id="numbers" class="tab-content">
+            <div class="number-section">
+                <div class="input-group">
+                    <label for="inputNumbers">Ingresa los numeros (uno por linea):</label>
+                    <textarea id="inputNumbers" placeholder="Ingresa un numero por linea:&#10;1,234,567.89&#10;2.345.678,90&#10;9876543.21"></textarea>
+                </div>
+                <div class="buttons">
+                    <button class="btn-number-clean" onclick="limpiarNumeros()">Limpiar Separadores</button>
+                    <button class="btn-number" onclick="agregarMiles()">Agregar Miles</button>
+                    <button class="btn-number-format" onclick="formatearNumero()">Formatear</button>
+                </div>
+                <div class="number-help">
+                    <strong>Instrucciones:</strong><br>
+                    - Ingresa <strong>un numero por linea</strong> para procesar listados<br>
+                    - <strong>Limpiar Separadores:</strong> Elimina todos los puntos y comas<br>
+                      Ejemplo: 1.234.567,89 → 1234567.89<br>
+                    - <strong>Agregar Miles:</strong> Añade separadores de miles<br>
+                      Ejemplo: 1234567.89 → 1,234,567.89<br>
+                    - <strong>Formatear:</strong> Formatea con 2 decimales y separadores de miles<br>
+                      Ejemplo: 1234567.89 → 1,234,567.89
+                </div>
+            </div>
+            <div class="result-group">
+                <label>Resultado:</label>
+                <div class="result-box" id="resultadoNumero"></div>
+            </div>
+        </div>
+        
+        <!-- Tab Buscar y Reemplazar -->
+        <div id="replace" class="tab-content">
+            <div class="input-group">
+                <label for="inputReplace">Texto original:</label>
+                <textarea id="inputReplace" placeholder="Ingresa el texto donde quieres buscar y reemplazar..." style="height: 150px;"></textarea>
+            </div>
+            
+            <div class="replace-group">
+                <div class="replace-input">
+                    <label for="buscarTexto">Buscar:</label>
+                    <input type="text" id="buscarTexto" placeholder="Texto a buscar...">
+                </div>
+                <div class="replace-input">
+                    <label for="reemplazarCon">Reemplazar con:</label>
+                    <input type="text" id="reemplazarCon" placeholder="Nuevo texto...">
+                </div>
+            </div>
+            
+            <div class="btn-replace-section">
+                <button class="btn-replace" onclick="reemplazarTexto()">Reemplazar Primera</button>
+                <button class="btn-replace-all" onclick="reemplazarTodo()">Reemplazar Todo</button>
+            </div>
+            
+            <span class="match-count" id="matchCount"></span>
+            
+            <div class="result-group">
+                <label>Resultado:</label>
+                <div class="result-box" id="resultadoReplace"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funciones del transformador
+        function capitalizar() {
+            const texto = document.getElementById('inputText').value;
+            if (!texto.trim()) { document.getElementById('resultado').textContent = ''; return; }
+            const capitalizado = texto.replace(/\b\w/g, letra => letra.toUpperCase());
+            document.getElementById('resultado').textContent = capitalizado;
+        }
+        function aMayusculas() {
+            const texto = document.getElementById('inputText').value;
+            if (!texto.trim()) { document.getElementById('resultado').textContent = ''; return; }
+            document.getElementById('resultado').textContent = texto.toUpperCase();
+        }
+        function aMinusculas() {
+            const texto = document.getElementById('inputText').value;
+            if (!texto.trim()) { document.getElementById('resultado').textContent = ''; return; }
+            document.getElementById('resultado').textContent = texto.toLowerCase();
+        }
+        function generarSlug() {
+            const texto = document.getElementById('inputText').value;
+            if (!texto.trim()) { document.getElementById('resultado').textContent = ''; return; }
+            let slug = texto
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim();
+            document.getElementById('resultado').textContent = slug;
+        }
+        
+        // Funciones de tabs
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+            if (tabId === 'editor') actualizarHTML();
+        }
+        
+        // Funciones del editor HTML
+        function execCmd(command, value = null) {
+            document.execCommand(command, false, value);
+            document.getElementById('editorArea').focus();
+            actualizarHTML();
+        }
+        
+        function formatearHTML(html) {
+            let formatted = '';
+            let indent = 0;
+            const indentSize = 4;
+            
+            const tags = html.replace(/\s+/g, ' ').trim();
+            
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(tags, 'text/html');
+            
+            function processNode(node, level) {
+                const indentation = ' '.repeat(level * indentSize);
+                
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const text = node.textContent.trim();
+                    if (text) {
+                        formatted += indentation + text + '\n';
+                    }
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    const tagName = node.tagName.toLowerCase();
+                    const attributes = Array.from(node.attributes)
+                        .map(attr => `${attr.name}="${attr.value}"`)
+                        .join(' ');
+                    
+                    const openTag = attributes 
+                        ? `${indentation}<${tagName} ${attributes}>` 
+                        : `${indentation}<${tagName}>`;
+                    
+                    const closeTag = `${indentation}</${tagName}>`;
+                    
+                    const voidElements = ['br', 'hr', 'img', 'input', 'meta', 'link'];
+                    
+                    if (voidElements.includes(tagName)) {
+                        formatted += openTag + '\n';
+                    } else if (node.childNodes.length === 1 && node.firstChild.nodeType === Node.TEXT_NODE) {
+                        formatted += openTag.replace(indentation, indentation) + node.textContent + `</${tagName}>` + '\n';
+                    } else {
+                        formatted += openTag + '\n';
+                        node.childNodes.forEach(child => processNode(child, level + 1));
+                        formatted += `${indentation}</${tagName}>` + '\n';
+                    }
+                }
+            }
+            
+            doc.body.childNodes.forEach(child => processNode(child, 0));
+            
+            return formatted.trim();
+        }
+        
+        function actualizarHTML() {
+            const editorContent = document.getElementById('editorArea').innerHTML;
+            if (!editorContent.trim()) {
+                document.getElementById('htmlCode').value = '';
+                return;
+            }
+            document.getElementById('htmlCode').value = formatearHTML(editorContent);
+        }
+        
+        function copiarHTML() {
+            const htmlCode = document.getElementById('htmlCode');
+            htmlCode.select();
+            document.execCommand('copy');
+            const btn = document.querySelector('.btn-copy');
+            btn.textContent = 'Copiado!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = 'Copiar HTML';
+                btn.classList.remove('copied');
+            }, 2000);
+        }
+        
+        // Actualizar HTML al escribir
+        document.getElementById('editorArea').addEventListener('input', actualizarHTML);
+        document.getElementById('editorArea').addEventListener('paste', setTimeout(actualizarHTML, 0));
+        
+        // Funciones de numeros
+        function procesarLineaNumero(linea) {
+            let numero = linea.trim()
+                .replace(/\./g, '')
+                .replace(/,/g, '.');
+            const num = parseFloat(numero);
+            if (isNaN(num)) {
+                return 'Error';
+            }
+            return num;
+        }
+        
+        function limpiarNumeros() {
+            const input = document.getElementById('inputNumbers').value;
+            if (!input.trim()) {
+                document.getElementById('resultadoNumero').textContent = '';
+                return;
+            }
+            const lineas = input.split('\n');
+            const resultados = lineas.map(linea => {
+                if (!linea.trim()) return '';
+                let numero = linea.trim()
+                    .replace(/\./g, '')
+                    .replace(/,/g, '.');
+                const match = numero.match(/^-?\d*\.?\d*$/);
+                if (match) {
+                    return match[0] || '';
+                }
+                return 'Error';
+            });
+            document.getElementById('resultadoNumero').textContent = resultados.join('\n');
+        }
+        
+        function agregarMiles() {
+            const input = document.getElementById('inputNumbers').value;
+            if (!input.trim()) {
+                document.getElementById('resultadoNumero').textContent = '';
+                return;
+            }
+            const lineas = input.split('\n');
+            const resultados = lineas.map(linea => {
+                if (!linea.trim()) return '';
+                const num = procesarLineaNumero(linea);
+                if (num === 'Error') return 'Error';
+                const partes = num.toString().split('.');
+                partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                return partes.join('.');
+            });
+            document.getElementById('resultadoNumero').textContent = resultados.join('\n');
+        }
+        
+        function formatearNumero() {
+            const input = document.getElementById('inputNumbers').value;
+            if (!input.trim()) {
+                document.getElementById('resultadoNumero').textContent = '';
+                return;
+            }
+            const lineas = input.split('\n');
+            const resultados = lineas.map(linea => {
+                if (!linea.trim()) return '';
+                const num = procesarLineaNumero(linea);
+                if (num === 'Error') return 'Error';
+                return num.toLocaleString('es-ES', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            });
+            document.getElementById('resultadoNumero').textContent = resultados.join('\n');
+        }
+        
+        // Funciones de Buscar y Reemplazar
+        function actualizarMatchCount() {
+            const texto = document.getElementById('inputReplace').value;
+            const buscar = document.getElementById('buscarTexto').value;
+            const matchCount = document.getElementById('matchCount');
+            
+            if (!texto.trim() || !buscar.trim()) {
+                matchCount.textContent = '';
+                return;
+            }
+            
+            const regex = new RegExp(buscar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+            const coincidencias = (texto.match(regex) || []).length;
+            matchCount.textContent = `Se encontraron ${coincidencias} coincidencia(s)`;
+        }
+        
+        function reemplazarTexto() {
+            const texto = document.getElementById('inputReplace').value;
+            const buscar = document.getElementById('buscarTexto').value;
+            const reemplazar = document.getElementById('reemplazarCon').value;
+            
+            if (!texto.trim()) {
+                document.getElementById('resultadoReplace').textContent = '';
+                return;
+            }
+            
+            if (!buscar.trim()) {
+                document.getElementById('resultadoReplace').textContent = texto;
+                return;
+            }
+            
+            const resultado = texto.replace(buscar, reemplazar);
+            document.getElementById('resultadoReplace').textContent = resultado;
+            actualizarMatchCount();
+        }
+        
+        function reemplazarTodo() {
+            const texto = document.getElementById('inputReplace').value;
+            const buscar = document.getElementById('buscarTexto').value;
+            const reemplazar = document.getElementById('reemplazarCon').value;
+            
+            if (!texto.trim()) {
+                document.getElementById('resultadoReplace').textContent = '';
+                return;
+            }
+            
+            if (!buscar.trim()) {
+                document.getElementById('resultadoReplace').textContent = texto;
+                return;
+            }
+            
+            const regex = new RegExp(buscar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+            const resultado = texto.replace(regex, reemplazar);
+            document.getElementById('resultadoReplace').textContent = resultado;
+            actualizarMatchCount();
+        }
+        
+        // Event listeners para actualizar conteo de coincidencias
+        document.getElementById('inputReplace').addEventListener('input', actualizarMatchCount);
+        document.getElementById('buscarTexto').addEventListener('input', actualizarMatchCount);
+        document.getElementById('reemplazarCon').addEventListener('input', function() {
+            if (document.getElementById('buscarTexto').value.trim()) {
+                reemplazarTodo();
+            }
+        });
+    </script>
+</body>
+</html>
