@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar JSON y agregar galería</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #1a1a2e;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .header-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+    }
+    
+    .header-icon i {
+      font-size: 36px;
+      color: white;
+    }
+    
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+    
+    .header p {
+      color: #6b7280;
+      font-size: 15px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #f3f4f6;
+    }
+    
+    .card-title i {
+      font-size: 20px;
+      color: #8b5cf6;
+    }
+    
+    .card-title h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+    
+    .upload-zone {
+      border: 2px dashed #d1d5db;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      background: #fafafa;
+    }
+    
+    .upload-zone:hover {
+      border-color: #8b5cf6;
+      background: #f5f3ff;
+    }
+    
+    .upload-zone i {
+      font-size: 48px;
+      color: #9ca3af;
+      margin-bottom: 16px;
+      display: block;
+    }
+    
+    .upload-zone:hover i {
+      color: #8b5cf6;
+    }
+    
+    .upload-zone span {
+      display: block;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+    
+    .upload-zone small {
+      color: #9ca3af;
+      font-size: 13px;
+    }
+    
+    input[type="file"] {
+      display: none;
+    }
+    
+    .hidden-section {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    }
+    
+    .btn-success {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+    
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    
+    .preview-item {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid #e5e7eb;
+      transition: all 0.3s ease;
+    }
+    
+    .preview-item:hover {
+      border-color: #8b5cf6;
+      transform: scale(1.02);
+    }
+    
+    .preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .preview-item .remove-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      background: rgba(239, 68, 68, 0.9);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    
+    .preview-item:hover .remove-btn {
+      opacity: 1;
+    }
+    
+    .preview-item .img-name {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+      color: white;
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .json-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: #f0fdf4;
+      border: 1px solid #10b981;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .json-info i {
+      font-size: 24px;
+      color: #10b981;
+    }
+    
+    .json-info .info-text {
+      flex: 1;
+    }
+    
+    .json-info .info-text strong {
+      display: block;
+      color: #1a1a2e;
+      margin-bottom: 2px;
+    }
+    
+    .json-info .info-text span {
+      font-size: 13px;
+      color: #6b7280;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #9ca3af;
+    }
+    
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 12px;
+      display: block;
+    }
+    
+    .empty-state span {
+      font-size: 14px;
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #10b981;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+      animation: slideIn 0.3s ease;
+      z-index: 1000;
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .menu {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 30px;
+      background: white;
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      flex-wrap: wrap;
+    }
+    .menu a {
+      padding: 10px 20px;
+      text-decoration: none;
+      color: #666;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+    .menu a:hover, .menu a.active {
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="header-icon">
+      <i class="fas fa-images"></i>
+    </div>
+    <h1>Editor de Galería JSON</h1>
+    <p>Agrega imágenes a la galería de fichas de productos</p>
+  </div>
+
+  <div class="menu">
+    <a href="index.html">Herramientas</a>
+    <a href="fichas.html">Fichas JSON</a>
+    <a href="galeria.html" class="active">Galería</a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <i class="fas fa-file-code"></i>
+      <h2>Cargar archivo JSON</h2>
+    </div>
+    
+    <div class="upload-zone" onclick="document.getElementById('jsonInput').click()">
+      <i class="fas fa-cloud-upload-alt"></i>
+      <span>Arrastra el archivo aquí o haz clic para seleccionar</span>
+      <small>Formato soportado: .json</small>
+    </div>
+    <input type="file" id="jsonInput" accept=".json">
+  </div>
+
+  <div id="imgSection" class="hidden-section">
+    <div class="card">
+      <div class="json-info" id="jsonInfo">
+        <i class="fas fa-check-circle"></i>
+        <div class="info-text">
+          <strong id="jsonFileName">Archivo cargado</strong>
+          <span id="jsonFileDesc">Galería lista para editar</span>
+        </div>
+      </div>
+      
+      <div class="card-title">
+        <i class="fas fa-image"></i>
+        <h2>Agregar imágenes</h2>
+      </div>
+      
+      <div class="upload-zone" onclick="document.getElementById('imgInput').click()">
+        <i class="fas fa-plus-circle"></i>
+        <span>Selecciona las imágenes</span>
+        <small>Puedes seleccionar múltiples archivos</small>
+      </div>
+      <input type="file" id="imgInput" accept="image/*" multiple>
+      
+      <div class="preview-grid" id="preview"></div>
+      
+      <div style="text-align: center;">
+        <button id="btnGuardar" class="btn-success">
+          <i class="fas fa-save"></i>
+          Descargar JSON actualizado
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let jsonData = null;
+let imageCount = 0;
+
+document.getElementById("jsonInput").addEventListener("change", function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    jsonData = JSON.parse(evt.target.result);
+    
+    if(!jsonData.galeria){
+      jsonData.galeria = [];
+    }
+
+    document.getElementById("jsonFileName").textContent = file.name;
+    document.getElementById("jsonFileDesc").textContent = `Código: ${jsonData.code} - Imágenes actuales: ${jsonData.galeria.length}`;
+    document.getElementById("imgSection").style.display = "block";
+    
+    showToast("JSON cargado correctamente");
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById("imgInput").addEventListener("change", function(e){
+  const files = [...e.target.files];
+  const preview = document.getElementById("preview");
+
+  files.forEach(file => {
+    imageCount++;
+    const reader = new FileReader();
+
+    reader.onload = function(ev){
+      jsonData.galeria.push(file.name);
+
+      const itemDiv = document.createElement("div");
+      itemDiv.className = "preview-item";
+      itemDiv.innerHTML = `
+        <img src="${ev.target.result}" alt="${file.name}">
+        <button class="remove-btn" onclick="removeImage(this, '${file.name}')">
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="img-name">${file.name}</div>
+      `;
+      preview.appendChild(itemDiv);
+    };
+
+    reader.readAsDataURL(file);
+  });
+  
+  showToast(`${files.length} imagen(es) agregada(s)`);
+});
+
+function removeImage(btn, fileName) {
+  const item = btn.closest('.preview-item');
+  const index = jsonData.galeria.indexOf(fileName);
+  if (index > -1) {
+    jsonData.galeria.splice(index, 1);
+  }
+  item.remove();
+  showToast("Imagen eliminada");
+}
+
+document.getElementById("btnGuardar").addEventListener("click", function(){
+  const blob = new Blob([JSON.stringify(jsonData, null, 4)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = jsonData.code + ".json";
+  link.click();
+  
+  showToast("JSON descargado correctamente");
+});
+
+function showToast(message) {
+  const existingToast = document.querySelector('.toast');
+  if (existingToast) existingToast.remove();
+  
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <i class="fas fa-check-circle"></i>
+    <span>${message}</span>
+  `;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => toast.remove(), 3000);
+}
+</script>
+
+</body>
+</html>

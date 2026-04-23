@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generar JSON desde XLSX</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #1a1a2e;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .header-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #4a90d9 0%, #357abd 100%);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 25px rgba(74, 144, 217, 0.3);
+    }
+    
+    .header-icon i {
+      font-size: 36px;
+      color: white;
+    }
+    
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+    
+    .header p {
+      color: #6b7280;
+      font-size: 15px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #f3f4f6;
+    }
+    
+    .card-title i {
+      font-size: 20px;
+      color: #4a90d9;
+    }
+    
+    .card-title h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+    
+    .upload-zone {
+      border: 2px dashed #d1d5db;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      background: #fafafa;
+    }
+    
+    .upload-zone:hover {
+      border-color: #4a90d9;
+      background: #f0f7ff;
+    }
+    
+    .upload-zone i {
+      font-size: 48px;
+      color: #9ca3af;
+      margin-bottom: 16px;
+      display: block;
+    }
+    
+    .upload-zone:hover i {
+      color: #4a90d9;
+    }
+    
+    .upload-zone span {
+      display: block;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+    
+    .upload-zone small {
+      color: #9ca3af;
+      font-size: 13px;
+    }
+    
+    input[type="file"] {
+      display: none;
+    }
+    
+    .template-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #4a90d9;
+      text-decoration: none;
+      font-weight: 500;
+      margin-top: 16px;
+      padding: 10px 16px;
+      background: #f0f7ff;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    
+    .template-link:hover {
+      background: #e0efff;
+      transform: translateY(-1px);
+    }
+    
+    .template-link i {
+      font-size: 18px;
+    }
+    
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #4a90d9 0%, #357abd 100%);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(74, 144, 217, 0.3);
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(74, 144, 217, 0.4);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+    
+    .btn-download-all {
+      display: none;
+      margin-top: 24px;
+    }
+    
+    .results-section {
+      display: none;
+    }
+    
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    
+    .results-header h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+    
+    .results-header h3 i {
+      color: #10b981;
+    }
+    
+    .counter-badge {
+      background: #e0efff;
+      color: #4a90d9;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    
+    .file-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .file-list::-webkit-scrollbar-track {
+      background: #f3f4f6;
+      border-radius: 3px;
+    }
+    
+    .file-list::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 3px;
+    }
+    
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: #f9fafb;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      transition: all 0.2s ease;
+    }
+    
+    .file-item:hover {
+      background: #f0f7ff;
+      border-color: #4a90d9;
+    }
+    
+    .file-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #4a90d9 0%, #357abd 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .file-icon i {
+      color: white;
+      font-size: 16px;
+    }
+    
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .file-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: #1a1a2e;
+      margin-bottom: 2px;
+    }
+    
+    .file-description {
+      font-size: 12px;
+      color: #6b7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .file-download {
+      color: #4a90d9;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    
+    .file-download:hover {
+      background: #e0efff;
+    }
+    
+    .file-download i {
+      font-size: 16px;
+    }
+    
+    .processing-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .processing-overlay.active {
+      display: flex;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #4a90d9;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .processing-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: #374151;
+    }
+    
+    .success-message {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 16px;
+      background: #ecfdf5;
+      border: 1px solid #10b981;
+      border-radius: 10px;
+      color: #059669;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+    
+    .success-message i {
+      font-size: 20px;
+    }
+    
+    .menu {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 30px;
+      background: white;
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      flex-wrap: wrap;
+    }
+    .menu a {
+      padding: 10px 20px;
+      text-decoration: none;
+      color: #666;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+    .menu a:hover, .menu a.active {
+      background: linear-gradient(135deg, #4a90d9 0%, #357abd 100%);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="processing-overlay" id="processingOverlay">
+  <div class="spinner"></div>
+  <div class="processing-text">Procesando archivo...</div>
+</div>
+
+<div class="container">
+  <div class="header">
+    <div class="header-icon">
+      <i class="fas fa-file-code"></i>
+    </div>
+    <h1>Generador de Fichas JSON</h1>
+    <p>Convierte archivos XLSX en estructuras JSON para fichas de productos</p>
+  </div>
+
+  <div class="menu">
+    <a href="index.html">Herramientas</a>
+    <a href="fichas.html" class="active">Fichas JSON</a>
+    <a href="galeria.html">Galería</a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <i class="fas fa-upload"></i>
+      <h2>Subir archivo XLSX</h2>
+    </div>
+    
+    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+      <i class="fas fa-cloud-upload-alt"></i>
+      <span>Arrastra el archivo aquí o haz clic para seleccionar</span>
+      <small>Formato soportado: .xlsx</small>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx" />
+    
+    <a href="FICHAS.xlsx" class="template-link" download>
+      <i class="fas fa-download"></i>
+      Descargar plantilla XLSX
+    </a>
+  </div>
+
+  <button id="btnZip" class="btn-secondary btn-download-all" style="width: 100%; justify-content: center;">
+    <i class="fas fa-file-archive"></i>
+    Descargar todos los archivos en ZIP
+  </button>
+
+  <div class="card results-section" id="resultsSection">
+    <div class="success-message" id="successMessage">
+      <i class="fas fa-check-circle"></i>
+      <span id="successText">Archivos generados correctamente</span>
+    </div>
+    
+    <div class="results-header">
+      <h3>
+        <i class="fas fa-check-circle"></i>
+        Archivos generados
+      </h3>
+      <span class="counter-badge" id="counterBadge">0 archivos</span>
+    </div>
+    
+    <div class="file-list" id="descargas"></div>
+  </div>
+</div>
+
+<script>
+let archivosGenerados = [];
+
+document.getElementById("fileInput").addEventListener("change", function (event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  document.getElementById("processingOverlay").classList.add("active");
+  
+  setTimeout(() => {
+    archivosGenerados = [];
+    
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      
+      generarArchivos(jsonData);
+      
+      document.getElementById("processingOverlay").classList.remove("active");
+      
+      if (jsonData.length > 0) {
+        document.getElementById("btnZip").style.display = "flex";
+        document.getElementById("resultsSection").style.display = "block";
+        document.getElementById("successMessage").style.display = "flex";
+        document.getElementById("successText").textContent = `${jsonData.length} archivos generados correctamente`;
+        document.getElementById("counterBadge").textContent = `${jsonData.length} archivos`;
+      }
+    };
+    
+    reader.readAsArrayBuffer(file);
+  }, 500);
+});
+
+function generarArchivos(data) {
+  const contenedor = document.getElementById("descargas");
+  contenedor.innerHTML = "";
+
+  data.forEach((element) => {
+    const sku = element["Sku"];
+    const productoJSON = {
+      "code": sku,
+      "galeria":[],
+      "tab_especificaciones_tecnicas": {
+        "Sistema operativo": element['Sistema Operativo'],
+        "Procesador": element['Procesador'],
+        "Cámara principal": element['Cámara'],
+        "Cámara Frontal": element['Cámara Frontal'],
+        "Pantalla": element['Tamano Pantalla'],
+        "Tipo de Pantalla": element['Tipo de Pantalla'],
+        "Tamaño (mm)": element['Tamaño (mm)'],
+        "Peso (gr)": element['Peso (gr)'],
+        "Memoria Interna": element['Memoria Interna'],
+        "Memoria Externa": element['Memoria Externa'],
+        "Memoria RAM": element['Memoria RAM'],
+        "Tipo de Batería": element['Tipo de Batería'],
+        "Frecuencia 2G": element['Frecuencia 2G'],
+        "Frecuencia 3G": element['Frecuencia 3G'],
+        "Frecuencia 4G": element['Frecuencia 4G'],
+        "Datos 2G": element['Datos 2G'],
+        "Datos 3G": element['Datos 3G'],
+        "Datos 4G": element['Datos 4G'],
+        "Wi-Fi": element['Wi-Fi'],
+        "NFC": element['NFC'] === '- -' ? 'No' : element['NFC'],
+        "Localización": element['Localización'],
+        "Bluetooth": element['Bluetooth'],
+        "SAE": element['SAE'],
+        "Radio": element['Radio'] === '- -' || element['Radio'] === '--' ? 'No' : element['Radio'],
+        "Transmisión de Datos": element['Transmisión de Datos'],
+        "Tipo de SIM Card": element['Tipo de SIM Card'],
+        "Teclado": element['Teclado']
+      },
+      "tab_caracteristicas_destacadas": [],
+      "tab_contenido_de_la_caja": [
+        element['Equipo'],
+        element['Batería'],
+        element['Cargador'],
+        element['Manos Libres'],
+        element['Cable de Datos'],
+        element['Guía de inicio rápido '],
+        element['Tarjeta de Memoria']
+      ]
+    };
+
+    const jsonString = JSON.stringify(productoJSON, null, 4);
+
+    archivosGenerados.push({
+      nombre: `${sku}.json`,
+      contenido: jsonString
+    });
+
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "file-item";
+    
+    itemDiv.innerHTML = `
+      <div class="file-icon">
+        <i class="fas fa-file-code"></i>
+      </div>
+      <div class="file-info">
+        <div class="file-name">${sku}.json</div>
+        <div class="file-description">${element['Equipo']} ${element['Color'] || ''}</div>
+      </div>
+      <a href="${url}" download="${sku}.json" class="file-download">
+        <i class="fas fa-download"></i>
+        Descargar
+      </a>
+    `;
+
+    contenedor.appendChild(itemDiv);
+  });
+}
+
+document.getElementById("btnZip").addEventListener("click", function() {
+  const zip = new JSZip();
+  
+  archivosGenerados.forEach(file => {
+    zip.file(file.nombre, file.contenido); 
+  });
+
+  zip.generateAsync({ type: "blob" })
+    .then(function(content) {
+      saveAs(content, "fichas-json.zip");
+    });
+});
+</script>
+
+</body>
+</html>
